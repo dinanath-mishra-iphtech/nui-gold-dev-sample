@@ -14,7 +14,7 @@ export async function userRoutes(app: FastifyInstance) {
 
   app.post('/test-kyc-email' , UserController.testKycEmail);
   app.post("/test-pdfSend-email" , UserController.sendPdfMail);
-  app.post("test-verifyOtp" , UserController.verifyOtp);
+  app.post("/test-verifyOtp" , UserController.verifyOtp);
   
   
   
