@@ -4,35 +4,51 @@ import {
   Model,
   DataType,
   HasMany,
-  HasOne,
+  PrimaryKey,
+  AutoIncrement,
 } from "sequelize-typescript";
 
 import { User } from "./user.model";
-import { ResaleCertificate } from "./resale-certificate.model";
-import { AMLQuestionnaire } from "./aml-questionnaire.model";
 
 export interface BusinessAttributes {
   id: number;
 
   business_name: string;
 
-  owner_first_name: string;
+  first_name: string;
 
-  owner_last_name: string;
+  last_name: string;
 
-  street_address: string;
+  physical_street_address: string;
 
   city: string;
 
   state: string;
 
-  postal_code: string;
+  postal: string;
 
   country: string;
 
   email: string;
 
+  resale_certificate?: Record<
+    string,
+    any
+  >;
+
+  aml_plan_exists: boolean;
+
+  independent_audit_conducted: boolean;
+
+  aml_training_provided: boolean;
+
+  audit_details?: Record<
+    string,
+    any
+  >;
+
   createdAt?: Date;
+
   updatedAt?: Date;
 }
 
@@ -50,11 +66,11 @@ export class Business extends Model<
   BusinessAttributes,
   CreateBusinessInput
 > {
-
+  @PrimaryKey
+  @AutoIncrement
   @Column({
     type: DataType.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
+    allowNull: false,
   })
   declare id: number;
 
@@ -68,19 +84,19 @@ export class Business extends Model<
     type: DataType.STRING,
     allowNull: false,
   })
-  declare owner_first_name: string;
+  declare first_name: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  declare owner_last_name: string;
+  declare last_name: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  declare street_address: string;
+  declare physical_street_address: string;
 
   @Column({
     type: DataType.STRING,
@@ -98,7 +114,7 @@ export class Business extends Model<
     type: DataType.STRING,
     allowNull: false,
   })
-  declare postal_code: string;
+  declare postal: string;
 
   @Column({
     type: DataType.STRING,
@@ -116,20 +132,49 @@ export class Business extends Model<
   })
   declare email: string;
 
-@HasMany(() => User, {
-  foreignKey: "business_id",
-  as: "employees",
-})
-declare employees: User[];
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+  })
+  declare resale_certificate: Record<
+    string,
+    any
+  >;
 
-  @HasOne(() => ResaleCertificate)
-  declare resale_certificate: ResaleCertificate;
-  
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  declare aml_plan_exists: boolean;
 
-  @HasOne(() => AMLQuestionnaire)
-  declare aml_questionnaire: AMLQuestionnaire;
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  declare independent_audit_conducted: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  })
+  declare aml_training_provided: boolean;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+  })
+  declare audit_details: Record<
+    string,
+    any
+  >;
+
+  @HasMany(() => User)
+  declare users: User[];
 
   declare readonly createdAt: Date;
-  declare readonly updatedAt: Date;
 
+  declare readonly updatedAt: Date;
 }

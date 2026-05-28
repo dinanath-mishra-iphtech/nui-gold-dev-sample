@@ -1,4 +1,5 @@
 import { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+import { logger } from "../../config/logger";
 import { ZodError } from "zod";
 
 import { AppError } from "../errors/app-error";
@@ -9,7 +10,7 @@ export async function errorHandler(
   reply: FastifyReply,
 ) {
 
-  console.error(error);
+  logger.error(error);
 
   // Custom App Errors
   if (error instanceof AppError) {
@@ -31,6 +32,6 @@ export async function errorHandler(
   // Default Errors
   return reply.status(500).send({
     success: false,
-    message: "Internal server error",
+    message: error.message,
   });
 }

@@ -5,9 +5,13 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  HasMany,
+  AutoIncrement,
+  PrimaryKey,
 } from "sequelize-typescript";
 
 import { Business } from "./business.model";
+import { Address } from "./address.model";
 
 export interface UserAttributes {
   id: number;
@@ -18,19 +22,22 @@ export interface UserAttributes {
 
   last_name: string;
 
-  email: string;
-
   password: string | null;
 
-  role:
-    | "admin"
-    | "trader"
-    | "trading"
-    | "view_only";
+  email: string;
 
   is_email_verified: boolean;
 
+  status: string;
+
+  role: string;
+
+  token: string | null;
+
+  expires_at: Date | null;
+
   createdAt?: Date;
+
   updatedAt?: Date;
 }
 
@@ -51,11 +58,11 @@ export class User extends Model<
   UserAttributes,
   CreateUserInput
 > {
-
+  @PrimaryKey
+  @AutoIncrement
   @Column({
     type: DataType.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
+    allowNull: false,
   })
   declare id: number;
 
@@ -84,6 +91,12 @@ export class User extends Model<
   @Column({
     type: DataType.STRING,
     allowNull: false,
+  })
+  declare password: string | null;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
     unique: true,
     validate: {
       isEmail: true,
@@ -92,34 +105,45 @@ export class User extends Model<
   declare email: string;
 
   @Column({
-    type: DataType.STRING,
-    allowNull: true,
-  })
-  declare password: string | null;
-
-  @Column({
-    type: DataType.ENUM(
-      "admin",
-      "trader",
-      "trading",
-      "view_only",
-    ),
-    allowNull: false,
-    defaultValue: "trader",
-  })
-  declare role:
-    | "admin"
-    | "trader"
-    | "trading"
-    | "view_only";
-
-  @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false,
   })
   declare is_email_verified: boolean;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  declare status: string;
+  
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  declare token: string | null;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  declare expires_at: Date | null;
+
+  @Column({
+    type: DataType.ENUM(
+      "trading",
+      "viewer",
+      "admin",
+      "trader"
+    ),
+    allowNull: false,
+  })
+  declare role: string;
+
+  @HasMany(() => Address)
+  declare addresses: Address[];
+
   declare readonly createdAt: Date;
+
   declare readonly updatedAt: Date;
 }

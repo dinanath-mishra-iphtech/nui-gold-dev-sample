@@ -1,21 +1,27 @@
 import { Sequelize } from "sequelize-typescript";
-import { env } from "./env";
+const config = require("./config.json")[process.env.NODE_ENV || "development"];
 import { User } from "../database/models/user.model";
 import { Business } from "../database/models/business.model";
-import { ResaleCertificate } from "../database/models/resale-certificate.model";
-import { AMLQuestionnaire } from "../database/models/aml-questionnaire.model";
-import { PasswordSetToken } from "../database/models/password-set-token.model";
+import { Address } from "../database/models/address.model";
 
 export const sequelize = new Sequelize({
-  dialect: "postgres",
-  host: env.DB_HOST,
-  port: env.DB_PORT,
-  username: env.DB_USER,
-  password: env.DB_PASSWORD,
-  database: env.DB_NAME,
-
-  logging: false,
-
-  models: [User, Business, ResaleCertificate, AMLQuestionnaire, PasswordSetToken],
-
+  database: config.database,
+  username: config.username,
+  password: config.password,
+  dialect: config.dialect,
+  host: config.host,
+  port: config.port,
+  logging: true,
+  define: {
+    timestamps: true,
+    underscored: true,
+  },
+  dialectOptions: config.dialectOptions,
+  pool: {
+    max: 10,
+    min: 0,
+    acquire: 30000,
+    idle: 10000,
+  },
+  models: [User,Business,Address],
 });

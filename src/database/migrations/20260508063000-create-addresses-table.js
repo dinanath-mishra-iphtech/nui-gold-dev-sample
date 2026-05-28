@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable(
-      "users",
+      "addresses",
       {
         id: {
           type: Sequelize.INTEGER,
@@ -12,67 +12,40 @@ module.exports = {
           allowNull: false,
         },
 
-        business_id: {
+        user_id: {
           type: Sequelize.INTEGER,
           allowNull: false,
           references: {
-            model: "businesses",
+            model: "users",
             key: "id",
           },
           onUpdate: "CASCADE",
           onDelete: "CASCADE",
         },
 
-        first_name: {
+        street_address: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        last_name: {
+        city: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        password: {
+        state: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        email: {
-          type: Sequelize.STRING,
-          allowNull: false,
-          unique: true,
-        },
-
-        is_email_verified: {
-          type: Sequelize.BOOLEAN,
-          allowNull: false,
-          defaultValue: false,
-        },
-
-        status: {
+        postal_code: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        role: {
-          type: Sequelize.ENUM(
-            "trading",
-            "viewer",
-            "admin",
-            "trader"
-          ),
-          allowNull: false,
-        },
-
-        token: {
+        country: {
           type: Sequelize.STRING,
-          allowNull: true,
-        },
-
-        expires_at: {
-          type: Sequelize.DATE,
-          allowNull: true,
+          allowNull: false,
         },
 
         createdAt: {
@@ -98,11 +71,7 @@ module.exports = {
 
   async down(queryInterface) {
     await queryInterface.dropTable(
-      "users"
-    );
-
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_users_accessibility";'
+      "addresses"
     );
   },
 };

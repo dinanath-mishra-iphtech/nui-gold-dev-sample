@@ -4,7 +4,22 @@ import { AuthController } from "./auth.controller";
 
 export async function authRoutes(app: FastifyInstance) {
 
-  app.post("/register", AuthController.registerTrader);
+    console.log("auth routes loaded");
+
+//   app.post("/register", AuthController.registerTrader);
+
+//   app.post("/set-password", AuthController.setPassword);
+
+//   app.post("/login", AuthController.login);
+
+//   app.post("/refresh-token",AuthController.refreshToken);
+
+    app.post('/test-kyc-email' , AuthController.testKycEmail);
+
   
+  
+  
+
+
 
 }

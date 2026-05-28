@@ -6,8 +6,9 @@ export const logger = pino({
     target: "pino-pretty",
     options: {
       colorize: true,
-      translateTime: "SYS:standard",
+      translateTime: "dd mmm, yyyy - HH:MM:ss Z",
       ignore: "pid,hostname",
     },
   },
+  timestamp: pino.stdTimeFunctions.isoTime,
 });
