@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { sequelize } from "../../config/database";
 import { UserRepository } from "./user.repository";
 import { RegisterInput, SetPasswordInput } from "./user.types";
+import { Address, CreateAddressInput } from "../../database/models/address.model";
 
 export class UserService {
   static async registerTrader(data: RegisterInput) {
@@ -177,7 +178,7 @@ export class UserService {
         );
 
         // Send email
-        
+
 
         createdEmployees.push(
           updatedEmployee
@@ -303,4 +304,28 @@ export class UserService {
 
     return user;
   }
+
+  static async createAddress(payload: CreateAddressInput,): Promise<Address> {
+
+    try {
+
+      // ─── Handle Default Address Logic ────────────
+      if (payload.is_default && payload.user_id) {
+        await UserRepository.removeDefaultAddresses(payload.user_id);
+      }
+      // ─── Create Address ──────────────────────────
+      const address = await UserRepository.createAddress(payload);
+      return address;
+
+
+    } catch (error: any) {
+
+
+      throw new Error(
+        error.message ||
+        "Failed to create address.",
+      );
+    }
+  }
+
 }

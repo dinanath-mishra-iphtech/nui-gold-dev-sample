@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 
 import { UserService } from "./user.service";
 
-import { createUserSchema, loginSchema, registerInputSchema, setPasswordSchema } from "./user.validation";
+import { createAddressSchema, createUserSchema, loginSchema, registerInputSchema, setPasswordSchema } from "./user.validation";
 
 export class UserController {
   static async create(request: FastifyRequest, reply: FastifyReply) {
@@ -87,4 +87,45 @@ export class UserController {
       data: user,
     });
   }
+
+  static async createAddress(request: FastifyRequest, reply: FastifyReply) {
+
+    try {
+
+      // ─── Validate Request Body ────────────────────
+      const body = createAddressSchema.parse(request.body);
+
+      const address = await UserService.createAddress(body);
+
+      // ─── Success Response ─────────────────────────
+      return reply.status(201).send({
+        success: true,
+        message: "Address created successfully.",
+        data: {
+          address_id: address.id,
+          ...address.toJSON(),
+        },
+      });
+
+    } catch (error: any) {
+      request.log.error(error);
+      // ─── Zod Validation Errors ────────────────────
+      if (error.name === "ZodError") {
+
+        return reply.status(400).send({
+          success: false,
+          message: "Validation failed.",
+          errors: error.errors,
+        });
+      }
+      // ─── Generic Errors ───────────────────────────
+      return reply.status(500).send({
+        success: false,
+        message:
+          error.message ||
+          "Failed to create address.",
+      });
+    }
+  }
+
 }

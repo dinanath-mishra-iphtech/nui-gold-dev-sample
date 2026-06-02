@@ -121,3 +121,77 @@ export const loginSchema = z.object({
     .min(6, "Password must be at least 6 characters"),
 
 });
+
+
+export const createAddressSchema = z.object({
+    user_id: z
+      .number()
+      .int()
+      .positive(),
+    /**
+     * Example:
+     * 1 = Ship To Me
+     * 2 = Drop Ship
+     * 3 = Hold Shipping
+     * 4 = Pick Up
+     * 5 = Store At Depository
+     */
+    type: z
+      .number()
+      .int()
+      .positive(),
+
+    address_line_1: z
+      .string()
+      .min(
+        3,
+        "Address line 1 is required",
+      ),
+
+    address_line_2: z
+      .string()
+      .optional(),
+
+    landmark: z
+      .string()
+      .optional(),
+
+    city: z
+      .string()
+      .min(
+        2,
+        "City is required",
+      ),
+
+    state: z
+      .string()
+      .min(
+        2,
+        "State is required",
+      ),
+
+    postal_code: z
+      .string()
+      .min(
+        3,
+        "Postal code is required",
+      ),
+
+    country: z
+      .string()
+      .min(
+        2,
+        "Country is required",
+      ),
+
+    contact_number: z
+      .string()
+      .min(
+        10,
+        "Contact number must be at least 10 digits",
+      ),
+
+    is_default: z
+      .boolean()
+      .optional(),
+  });

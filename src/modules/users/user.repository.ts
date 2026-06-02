@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { Business } from "../../database/models/business.model";
 import { CreateUserInput, User } from "../../database/models/user.model";
-import { Address } from "../../database/models/address.model";
+import { Address, CreateAddressInput } from "../../database/models/address.model";
 import { CreateBusinessInput } from "./user.types";
 
 export class UserRepository {
@@ -169,5 +169,77 @@ export class UserRepository {
       ],
     });
   }
+
+  // ─── Address Methods ───────────────────────────
+
+
+  static async createAddress(data: CreateAddressInput,) {
+
+
+    return Address.create(data);
+  }
+
+
+  static async removeDefaultAddresses(user_id: number,) {
+
+
+    return Address.update(
+      {
+        is_default: false,
+      },
+      {
+        where: {
+          user_id,
+        },
+      },
+    );
+  }
+
+
+  static async getUserAddresses(user_id: number,) {
+
+
+    return Address.findAll({
+      where: {
+        user_id,
+      },
+
+
+      order: [
+        ["is_default", "DESC"],
+        ["createdAt", "DESC"],
+      ],
+    });
+  }
+
+
+  static async getAddressById(id: number,) {
+
+
+    return Address.findByPk(id);
+  }
+
+
+  static async updateAddress(id: number, data: Partial<CreateAddressInput>,) {
+
+
+    await Address.update(
+      data,
+      {
+        where: { id },
+      },
+    );
+    return Address.findByPk(id);
+  }
+
+
+  static async deleteAddress(id: number,) {
+
+
+    return Address.destroy({
+      where: { id },
+    });
+  }
+
 
 }
