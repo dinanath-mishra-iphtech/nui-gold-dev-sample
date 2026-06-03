@@ -6,9 +6,10 @@ const start = async () => {
   try {
     await sequelize.authenticate();
     logger.info("Database connected");
-    await sequelize.sync({
-      alter: true,
-    });
+
+    // await sequelize.sync({
+    //   alter: true,
+    // });
     logger.info("Database synced");
     await app.listen({
       port: Number(process.env.PORT) || 3000,
