@@ -26,5 +26,11 @@ backup.log
 # Test coverage
 coverage/
 
+#uploads files
+uploads/
+
+
+
+
 
 

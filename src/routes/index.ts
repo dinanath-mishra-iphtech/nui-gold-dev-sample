@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { userRoutes } from "../modules/users/user.routes";
+// import { uploadRoutes } from "../modules/uploads/upload.routes";
 // import { authRoutes } from "../modules/auth/auth.routes";
 
 export async function routes(app: FastifyInstance) {
@@ -10,6 +11,13 @@ export async function routes(app: FastifyInstance) {
   // app.register(authRoutes, {
   //   prefix: "/api/auth",
   // });
+
+  // app.register(
+  //   uploadRoutes,
+  //   {
+  //     prefix: "/api/uploads",
+  //   }
+  // );
 
 
 }

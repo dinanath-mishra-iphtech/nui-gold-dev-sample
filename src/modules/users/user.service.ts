@@ -2,13 +2,17 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sequelize } from "../../config/database";
 import { UserRepository } from "./user.repository";
-import { RegisterInput, SetPasswordInput } from "./user.types";
+import { CreateAddressInput, RegisterInput, SetPasswordInput } from "./user.types";
 import { emailProvider } from "../../common/utils/email.provider";
 import { buildSetPasswordTemplate } from "../../common/templates/setPassword.template";
 import { buildKycApprovedTemplate } from "../../common/templates/kyc-approved.template";
 import { buildKycRejectedTemplate } from "../../common/templates/kyc-rejected.template";
 import { buildPdfEmailTemplate } from "../../common/templates/pdfEmail.template";
 import { buildVerifyOtpTemplate } from "../../common/templates/verifyOtp.templates";
+import { logger } from "../../config/logger";
+import { buildShipOrTransferNotificationTemplate } from "../../common/templates/shipOrTransfer.template";
+import { buildPurchaseOrderConfirmationTemplate } from "../../common/templates/purchaseOrderConfirm.template";
+import { Address } from "../../database/models/address.model";
 
 
 export class UserService {
@@ -17,10 +21,7 @@ export class UserService {
 
 
     try {
-      const {
-        business_info,
-        employees,
-      } = data;
+      const { business_info, employees, } = data;
 
       // Check business email
       const existingBusiness =
@@ -227,9 +228,9 @@ export class UserService {
       throw error;
     }
   }
-  
-  
-  
+
+
+
 
 
   //set-password after registration
@@ -283,37 +284,98 @@ export class UserService {
   }
 
   static async login(email: string, password: string) {
-
     const user = await UserRepository.findUserByEmail(email);
 
-    if (!user) {
-      throw new Error("User not found");
+    if (!user) throw new Error("User not found");
+    if (!user.password) throw new Error("Please set your password first");
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) throw new Error("Invalid password");
+
+    // ── Generate & save OTP ──────────────────────────────
+    const otpPlain = crypto.randomInt(100000, 999999).toString();
+    const otpHash = await bcrypt.hash(otpPlain, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await UserRepository.setOtp(user.id, otpHash, expiresAt);
+
+    // ── Send OTP email ───────────────────────────────────
+    const html = buildVerifyOtpTemplate(user.first_name, otpPlain);
+    await emailProvider.sendEmail(user.email, "Your OTP - NUI Gold", html);
+
+    return { email: user.email };
+  }
+
+  static async sendOtp(email: string) {
+    const user = await UserRepository.findUserByEmail(email);
+    if (!user) throw new Error("No account found for this email");
+
+    // ── Rate-limit: block if OTP sent < 60s ago ──────────
+    if (user.otp_expires_at) {
+      const otpCreatedAt = user.otp_expires_at.getTime() - 5 * 60 * 1000;
+      const elapsed = Date.now() - otpCreatedAt;
+      if (elapsed < 60 * 1000) {
+        throw new Error("Please wait before requesting a new OTP");
+      }
     }
 
-    if (!user.password) {
+    const otpPlain = crypto.randomInt(100000, 999999).toString();
+    const otpHash = await bcrypt.hash(otpPlain, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-      throw new Error("Please set your password first");
+    await UserRepository.setOtp(user.id, otpHash, expiresAt);
+
+    const html = buildVerifyOtpTemplate(user.first_name, otpPlain);
+    await emailProvider.sendEmail(user.email, "Your OTP - NUI Gold", html);
+
+    return { email: user.email };
+  }
+
+  static async verifyOtp(email: string, otp: string) {
+    const user = await UserRepository.findUserByEmail(email);
+
+    if (!user || !user.otp || !user.otp_expires_at) {
+      throw new Error("No OTP found. Please request a new one.");
     }
 
-    const isPasswordValid =
-      await bcrypt.compare(
-        password,
-        user.password,
+    if (new Date() > user.otp_expires_at) {
+      await UserRepository.clearOtp(user.id);
+      throw new Error("OTP expired. Please request a new one.");
+    }
+
+    if (user.otp_attempts >= 5) {
+      await UserRepository.clearOtp(user.id);
+      throw new Error("Too many failed attempts. Please request a new OTP.");
+    }
+
+    const isMatch = await bcrypt.compare(otp, user.otp);
+
+    if (!isMatch) {
+      await UserRepository.incrementOtpAttempts(user.id);
+      const remaining = 5 - (user.otp_attempts + 1);
+      throw new Error(
+        remaining > 0
+          ? `Invalid OTP. ${remaining} attempt(s) remaining.`
+          : "Invalid OTP. Please request a new one."
       );
-
-    if (!isPasswordValid) {
-
-      throw new Error("Invalid password");
     }
 
+    await UserRepository.clearOtp(user.id);
 
+    // ── Return user data so controller can sign JWT ───────
     return {
       id: user.id,
-      name: user.first_name + " " + user.last_name,
+      name: `${user.first_name} ${user.last_name}`,
       email: user.email,
       role: user.role,
     };
   }
+
+
+
+
+
+
 
   static async getUsers() {
     return UserRepository.getUsers();
@@ -433,6 +495,193 @@ export class UserService {
       html,
     );
   }
+
+
+  static async sendShipOrTransferNotificationEmail(
+    {
+      email,
+      customerName,
+      salesOrderNumber,
+      transferOrShip,
+      dropShipName,
+      trackingNumber,
+      totalAmount,
+      date,
+      pdfBuffer,
+      pdfFilename,
+    }: {
+      email: string;
+      customerName: string;
+      salesOrderNumber: string;
+      transferOrShip: "Ship & Dropship" | "Transfer" | "Ship & Transfer" | "Ship" | "Dropship";
+      dropShipName?: string;
+      trackingNumber?: string;
+      totalAmount: string;
+      date: string;
+      pdfBuffer: Buffer;
+      pdfFilename: string;
+    }): Promise<void> {
+
+    try {
+
+      // ─── Build HTML template ─────────────────────────────
+      const html = buildShipOrTransferNotificationTemplate({
+        customerName,
+        salesOrderNumber,
+        transferOrShip,
+        dropShipName,
+        trackingNumber,
+        totalAmount,
+        date,
+      });
+
+      // ─── Send email with PDF attachment ─────────────────
+      const emailSent = await emailProvider.sendEmail(
+        email,
+        `Order Update - ${salesOrderNumber}`,
+        html,
+        [
+          {
+            filename: pdfFilename,
+            content: pdfBuffer,
+            contentType: "application/pdf",
+          },
+        ],
+      );
+
+      // ─── Email audit logging ─────────────────────────────
+      logger.info(
+        {
+          email,
+          salesOrderNumber,
+          transferOrShip,
+          filename: pdfFilename,
+          status: emailSent ? "SUCCESS" : "FAILED",
+        },
+        "Ship/transfer notification email processed",
+      );
+
+    } catch (error: any) {
+
+      logger.error(
+        {
+          error: error.message,
+          email,
+          salesOrderNumber,
+        },
+        "Failed to send ship/transfer notification email",
+      );
+
+      throw new Error(
+        "Failed to send ship/transfer notification email",
+      );
+    }
+  }
+
+
+  static async sendPurchaseOrderConfirmationEmail(
+    {
+      email,
+      vendorName,
+      purchaseOrderNumber,
+      pdfBuffer,
+      pdfFilename,
+    }: {
+      email: string;
+      vendorName: string;
+      purchaseOrderNumber: string;
+      pdfBuffer: Buffer;
+      pdfFilename: string;
+    }): Promise<void> {
+
+    try {
+
+      // ─── Build HTML template ─────────────────────────────
+      const html = buildPurchaseOrderConfirmationTemplate({
+        vendorName,
+        purchaseOrderNumber,
+      });
+
+      // ─── Send email with PDF attachment ─────────────────
+      const emailSent = await emailProvider.sendEmail(
+        email,
+        `Purchase Order Confirmation - ${purchaseOrderNumber}`,
+        html,
+        [
+          {
+            filename: pdfFilename,
+            content: pdfBuffer,
+            contentType: "application/pdf",
+          },
+        ],
+      );
+
+      // ─── Email audit logging ─────────────────────────────
+      logger.info(
+        {
+          email,
+          purchaseOrderNumber,
+          filename: pdfFilename,
+          status: emailSent ? "SUCCESS" : "FAILED",
+        },
+        "Purchase order confirmation email processed",
+      );
+
+    } catch (error: any) {
+
+      logger.error(
+        {
+          error: error.message,
+          email,
+          purchaseOrderNumber,
+        },
+        "Failed to send purchase order confirmation email",
+      );
+
+      throw new Error(
+        "Failed to send purchase order confirmation email",
+      );
+    }
+  }
+
+
+  static async createAddress(payload: CreateAddressInput,): Promise<Address> {
+
+    try {
+      // ─── Validate User Exists ─────────────────────
+
+      if (payload.user_id) {
+
+        const user = await UserRepository.findById(payload.user_id);
+        if (!user) {
+          throw new Error("Invalid user_id. User does not exist.",);
+        }
+      }
+      // ─── Handle Default Address Logic ────────────
+      if (payload.is_default && payload.user_id) {
+        await UserRepository.removeDefaultAddresses(payload.user_id);
+      }
+      // ─── Create Address ──────────────────────────
+      const address = await UserRepository.createAddress(payload);
+      return address;
+    } catch (error: any) {
+      // ─── Foreign Key Constraint Error ────────────
+      if (
+        error.name ===
+        "SequelizeForeignKeyConstraintError"
+      ) {
+        throw new Error(
+          "Invalid user_id. User does not exist.",
+        );
+      }
+      // ─── Generic Error ───────────────────────────
+      throw new Error(
+        error.message ||
+        "Failed to create address.",
+      );
+    }
+  }
+
 
 
 

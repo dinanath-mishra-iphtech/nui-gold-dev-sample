@@ -8,6 +8,9 @@ import fastifyJwt from "@fastify/jwt";
 import multipart from '@fastify/multipart';
 import { env } from "./config/env";
 
+import fastifyStatic from "@fastify/static";
+import path from "path";
+
 export const app = Fastify({
   loggerInstance: logger,
 });
@@ -21,6 +24,21 @@ app.register(multipart, {
     fileSize: 10 * 1024 * 1024, // 10 MB max
   },
 });
+
+
+app.register(
+  fastifyStatic,
+  {
+    root: path.join(
+      process.cwd(),
+      "uploads"
+    ),
+    prefix:
+      "/uploads/",
+  }
+);
+
+
 
 app.register(cors);
 app.register(helmet);

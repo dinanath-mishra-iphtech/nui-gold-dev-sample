@@ -2,7 +2,7 @@ import { Transaction } from "sequelize";
 import { Business } from "../../database/models/business.model";
 import { CreateUserInput, User } from "../../database/models/user.model";
 import { Address } from "../../database/models/address.model";
-import { CreateBusinessInput } from "./user.types";
+import { CreateAddressInput, CreateBusinessInput } from "./user.types";
 
 export class UserRepository {
   static async createUser(data: CreateUserInput, transaction: Transaction) {
@@ -169,5 +169,99 @@ export class UserRepository {
       ],
     });
   }
+
+  // ─── OTP Methods ──────────────────────────────────────────
+
+  static async setOtp(id: number, otpHash: string, expiresAt: Date) {
+    return User.update(
+      {
+        otp: otpHash,
+        otp_expires_at: expiresAt,
+        otp_attempts: 0,
+      },
+      {
+        where: { id },
+      }
+    );
+  }
+
+  static async clearOtp(id: number) {
+    return User.update(
+      {
+        otp: null,
+        otp_expires_at: null,
+        otp_attempts: 0,
+      },
+      {
+        where: { id },
+      }
+    );
+  }
+
+  static async incrementOtpAttempts(id: number) {
+    return User.increment("otp_attempts", {
+      where: { id },
+    });
+  }
+
+  // ─── Address Methods ───────────────────────────
+
+  static async createAddress(data: CreateAddressInput,) {
+
+    return Address.create(data);
+  }
+
+  static async removeDefaultAddresses(user_id: number,) {
+
+    return Address.update(
+      {
+        is_default: false,
+      },
+      {
+        where: {
+          user_id,
+        },
+      },
+    );
+  }
+
+  static async getUserAddresses(user_id: number,) {
+
+    return Address.findAll({
+      where: {
+        user_id,
+      },
+
+      order: [
+        ["is_default", "DESC"],
+        ["createdAt", "DESC"],
+      ],
+    });
+  }
+
+  static async getAddressById(id: number,) {
+
+    return Address.findByPk(id);
+  }
+
+  static async updateAddress(id: number, data: Partial<CreateAddressInput>,) {
+
+    await Address.update(
+      data,
+      {
+        where: { id },
+      },
+    );
+
+    return Address.findByPk(id);
+  }
+
+  static async deleteAddress(id: number,) {
+
+    return Address.destroy({
+      where: { id },
+    });
+  }
+
 
 }

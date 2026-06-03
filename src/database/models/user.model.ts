@@ -26,6 +26,8 @@ export interface UserAttributes {
 
   email: string;
 
+  phone: string | null;
+
   is_email_verified: boolean;
 
   status: string;
@@ -35,6 +37,12 @@ export interface UserAttributes {
   token: string | null;
 
   expires_at: Date | null;
+
+  otp: string | null;
+
+  otp_expires_at: Date | null;
+
+  otp_attempts: number;
 
   createdAt?: Date;
 
@@ -48,6 +56,10 @@ export interface CreateUserInput
     | "createdAt"
     | "updatedAt"
     | "is_email_verified"
+    | "otp"
+    | "otp_expires_at"
+    | "otp_attempts"
+    | "phone"
   > {}
 
 @Table({
@@ -105,6 +117,12 @@ export class User extends Model<
   declare email: string;
 
   @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  declare phone: string | null;
+
+  @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false,
@@ -113,10 +131,10 @@ export class User extends Model<
 
   @Column({
     type: DataType.STRING,
-    allowNull: true,
+    allowNull: false,
   })
   declare status: string;
-  
+
   @Column({
     type: DataType.STRING,
     allowNull: true,
@@ -139,6 +157,25 @@ export class User extends Model<
     allowNull: false,
   })
   declare role: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  declare otp: string | null;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  declare otp_expires_at: Date | null;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  })
+  declare otp_attempts: number;
 
   @HasMany(() => Address)
   declare addresses: Address[];
