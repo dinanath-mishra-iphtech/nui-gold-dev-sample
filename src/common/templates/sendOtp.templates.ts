@@ -1,4 +1,4 @@
-export const buildVerifyOtpTemplate = (
+export const buildSendOtpTemplate = (
   name: string,
   otp: string,
 ): string => {

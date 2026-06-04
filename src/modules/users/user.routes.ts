@@ -1,9 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { UserController } from "./user.controller";
+import { UserService } from "./user.service";
 
 export async function userRoutes(app: FastifyInstance) {
-
-  console.log("Enter in user routes");
 
   
   app.post("/", UserController.create);
@@ -20,7 +19,10 @@ export async function userRoutes(app: FastifyInstance) {
   app.post("/test-pdfSend-email" , UserController.sendPdfMail);
   app.post("/test-verifyOtp" , UserController.verifyOtp);
   app.post("/test-shipOrTransfer-email" , UserController.sendShipOrTransferNotification);
+  app.post("/test-salesOrder-email" , UserController.sendSalesOrderConfirmation);
   app.post("/test-purchaseOrder-email" , UserController.sendPurchaseOrderConfirmation);
+
+
   
   
 

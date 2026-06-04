@@ -8,11 +8,12 @@ import { buildSetPasswordTemplate } from "../../common/templates/setPassword.tem
 import { buildKycApprovedTemplate } from "../../common/templates/kyc-approved.template";
 import { buildKycRejectedTemplate } from "../../common/templates/kyc-rejected.template";
 import { buildPdfEmailTemplate } from "../../common/templates/pdfEmail.template";
-import { buildVerifyOtpTemplate } from "../../common/templates/verifyOtp.templates";
+import { buildSendOtpTemplate } from "../../common/templates/sendOtp.templates";
 import { logger } from "../../config/logger";
 import { buildShipOrTransferNotificationTemplate } from "../../common/templates/shipOrTransfer.template";
 import { buildPurchaseOrderConfirmationTemplate } from "../../common/templates/purchaseOrderConfirm.template";
 import { Address } from "../../database/models/address.model";
+import { buildSalesOrderConfirmationTemplate } from "../../common/templates/salesOrderConfirm.template";
 
 
 export class UserService {
@@ -300,7 +301,7 @@ export class UserService {
     await UserRepository.setOtp(user.id, otpHash, expiresAt);
 
     // ── Send OTP email ───────────────────────────────────
-    const html = buildVerifyOtpTemplate(user.first_name, otpPlain);
+    const html = buildSendOtpTemplate(user.first_name, otpPlain);
     await emailProvider.sendEmail(user.email, "Your OTP - NUI Gold", html);
 
     return { email: user.email };
@@ -325,7 +326,7 @@ export class UserService {
 
     await UserRepository.setOtp(user.id, otpHash, expiresAt);
 
-    const html = buildVerifyOtpTemplate(user.first_name, otpPlain);
+    const html = buildSendOtpTemplate(user.first_name, otpPlain);
     await emailProvider.sendEmail(user.email, "Your OTP - NUI Gold", html);
 
     return { email: user.email };
@@ -476,26 +477,6 @@ export class UserService {
     );
   }
 
-  // otp email function
-  static async sendOtpEmail(
-    email: string,
-    name: string,
-    otp: string,
-  ): Promise<void> {
-
-    if (!email || !name || !otp) {
-      throw new Error("email, name and otp are required");
-    }
-
-    const html = buildVerifyOtpTemplate(name, otp);
-
-    await emailProvider.sendEmail(
-      email,
-      "Your OTP for Numismatics Unlimited Inc.",
-      html,
-    );
-  }
-
 
   static async sendShipOrTransferNotificationEmail(
     {
@@ -574,6 +555,79 @@ export class UserService {
 
       throw new Error(
         "Failed to send ship/transfer notification email",
+      );
+    }
+  }
+
+  static async sendSalesOrderConfirmationEmail(
+    {
+      email,
+      customerName,
+      salesOrderNumber,
+      totalAmount,
+      pdfBuffer,
+      pdfFilename,
+    }: {
+      email: string;
+      customerName: string;
+      salesOrderNumber: string;
+      totalAmount: string;
+      pdfBuffer: Buffer;
+      pdfFilename: string;
+    }): Promise<void> {
+
+    try {
+
+      // ─── Auto-generate date ──────────────────────────────
+      const date = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+      // ─── Build HTML template ─────────────────────────────
+      const html = buildSalesOrderConfirmationTemplate({
+        customerName,
+        salesOrderNumber,
+        totalAmount,
+        date,
+      });
+      // ─── Send email with PDF attachment ─────────────────
+      const emailSent = await emailProvider.sendEmail(
+        email,
+        `Sales Order Confirmation - ${salesOrderNumber}`,
+        html,
+        [
+          {
+            filename: pdfFilename,
+            content: pdfBuffer,
+            contentType: "application/pdf",
+          },
+        ],
+      );
+      // ─── Email audit logging ─────────────────────────────
+      logger.info(
+        {
+          email,
+          salesOrderNumber,
+          filename: pdfFilename,
+          status: emailSent ? "SUCCESS" : "FAILED",
+        },
+        "Sales order confirmation email processed",
+      );
+
+    } catch (error: any) {
+
+      logger.error(
+        {
+          error: error.message,
+          email,
+          salesOrderNumber,
+        },
+        "Failed to send sales order confirmation email",
+      );
+
+      throw new Error(
+        "Failed to send sales order confirmation email",
       );
     }
   }

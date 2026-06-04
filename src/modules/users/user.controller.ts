@@ -53,6 +53,7 @@ export class UserController {
     });
   }
 
+
   // ── Step 3: verify OTP + issue JWT (actual login) ────────
   static async verifyOtp(request: FastifyRequest, reply: FastifyReply) {
     const { email, otp } = verifyOtpSchema.parse(request.body);
@@ -286,6 +287,95 @@ export class UserController {
       return reply.status(500).send({
         success: false,
         message: error.message || "Failed to send ship/transfer notification.",
+      });
+    }
+  }
+
+  static async sendSalesOrderConfirmation(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const parts = request.parts();
+
+      let email: string | null = null;
+      let customerName: string | null = null;
+      let salesOrderNumber: string | null = null;
+      let totalAmount: string | null = null;
+
+      let pdfBuffer: Buffer | null = null;
+      let pdfFilename: string;
+
+      for await (const part of parts) {
+
+        // ─── Handle form fields ─────────────────────────────
+        if (part.type === "field") {
+
+          if (part.fieldname === "email") email = part.value as string;
+          if (part.fieldname === "customerName") customerName = part.value as string;
+          if (part.fieldname === "salesOrderNumber") salesOrderNumber = part.value as string;
+          if (part.fieldname === "totalAmount") totalAmount = part.value as string;
+        }
+
+        // ─── Handle PDF file ───────────────────────────────
+        if (part.type === "file" && part.fieldname === "pdf") {
+
+          if (part.mimetype !== "application/pdf") {
+            return reply.status(400).send({
+              success: false,
+              message: "Only PDF files are accepted.",
+            });
+          }
+
+          pdfBuffer = await part.toBuffer();
+        }
+      }
+
+      // ─── Build filename after loop ───────────────────────
+      pdfFilename = salesOrderNumber
+        ? `Sales-Order-${salesOrderNumber}.pdf`
+        : "Sales-Order.pdf";
+
+      // ─── Required field validation ───────────────────────
+      if (!email) {
+        return reply.status(400).send({ success: false, message: "email is required." });
+      }
+
+      if (!customerName) {
+        return reply.status(400).send({ success: false, message: "customerName is required." });
+      }
+
+      if (!salesOrderNumber) {
+        return reply.status(400).send({ success: false, message: "salesOrderNumber is required." });
+      }
+
+      if (!totalAmount) {
+        return reply.status(400).send({ success: false, message: "totalAmount is required." });
+      }
+
+      if (!pdfBuffer) {
+        return reply.status(400).send({ success: false, message: "pdf file is required." });
+      }
+
+      // ─── Send confirmation email ─────────────────────────
+      await UserService.sendSalesOrderConfirmationEmail({
+        email,
+        customerName,
+        salesOrderNumber,
+        totalAmount,
+        pdfBuffer,
+        pdfFilename,
+      });
+
+      return reply.status(200).send({
+        success: true,
+        message: `Sales order confirmation sent successfully to ${email}`,
+      });
+
+    } catch (error: any) {
+
+      request.log.error(error);
+
+      return reply.status(500).send({
+        success: false,
+        message: error.message || "Failed to send sales order confirmation.",
       });
     }
   }

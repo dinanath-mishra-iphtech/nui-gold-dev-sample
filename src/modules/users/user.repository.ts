@@ -65,10 +65,7 @@ export class UserRepository {
     });
   }
 
-  static async updateUserPassword(
-    userId: number,
-    hashedPassword: string
-  ) {
+  static async updateUserPassword(userId: number,hashedPassword: string) {
 
     return User.update(
       {
