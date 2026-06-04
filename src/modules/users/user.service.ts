@@ -3,6 +3,8 @@ import crypto from "crypto";
 import { sequelize } from "../../config/database";
 import { UserRepository } from "./user.repository";
 import { RegisterInput, SetPasswordInput } from "./user.types";
+import { emailProvider } from "../../common/utils/email.provider";
+import { getResetPasswordEmailTemplate } from "../../common/templates/resetPassword.template";
 
 export class UserService {
   static async registerTrader(data: RegisterInput) {
@@ -103,10 +105,11 @@ export class UserService {
       );
 
       // Send Email
-      // await EmailService.sendSetPasswordEmail(
-      //   traderUser.email,
-      //   traderRawToken
-      // );
+      await emailProvider.sendEmail(
+        traderUser.email,
+        "Reset Your Password — NUI Gold",
+        getResetPasswordEmailTemplate(traderRawToken,traderTokenExpiry),
+      );
 
       // Employees array
       const createdEmployees =
@@ -177,7 +180,11 @@ export class UserService {
         );
 
         // Send email
-        
+        await emailProvider.sendEmail(
+          createdEmployee.email,
+          "Reset Your Password — NUI Gold",
+          getResetPasswordEmailTemplate(employeeRawToken,employeeTokenExpiry),
+        );
 
         createdEmployees.push(
           updatedEmployee

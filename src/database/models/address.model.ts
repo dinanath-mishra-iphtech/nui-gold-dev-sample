@@ -26,15 +26,15 @@ export interface AddressAttributes {
 
   country: string;
 
-  createdAt?: Date;
+  created_at?: Date;
 
-  updatedAt?: Date;
+  updated_at?: Date;
 }
 
 export interface CreateAddressInput
   extends Omit<
     AddressAttributes,
-    "id" | "createdAt" | "updatedAt"
+    "id" | "created_at" | "updated_at"
   > {}
 
 @Table({
@@ -93,7 +93,7 @@ export class Address extends Model<
   })
   declare country: string;
 
-  declare readonly createdAt: Date;
+  declare readonly created_at: Date;
 
-  declare readonly updatedAt: Date;
+  declare readonly updated_at: Date;
 }

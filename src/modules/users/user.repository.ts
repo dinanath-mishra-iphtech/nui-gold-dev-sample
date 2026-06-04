@@ -111,8 +111,8 @@ export class UserRepository {
           model: Address,
           attributes: {
             exclude: [
-              "createdAt",
-              "updatedAt",
+              "created_at",
+              "updated_at",
             ],
           },
         },
@@ -121,8 +121,8 @@ export class UserRepository {
           model: Business,
           attributes: {
             exclude: [
-              "createdAt",
-              "updatedAt",
+              "created_at",
+              "updated_at",
             ],
           },
         },
@@ -150,8 +150,8 @@ export class UserRepository {
 
           attributes: {
             exclude: [
-              "createdAt",
-              "updatedAt",
+              "created_at",
+              "updated_at",
             ],
           },
         },
@@ -161,8 +161,8 @@ export class UserRepository {
 
           attributes: {
             exclude: [
-              "createdAt",
-              "updatedAt",
+              "created_at",
+              "updated_at",
             ],
           },
         },

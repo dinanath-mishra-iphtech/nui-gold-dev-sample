@@ -36,17 +36,17 @@ export interface UserAttributes {
 
   expires_at: Date | null;
 
-  createdAt?: Date;
+  created_at?: Date;
 
-  updatedAt?: Date;
+  updated_at?: Date;
 }
 
 export interface CreateUserInput
   extends Omit<
     UserAttributes,
     | "id"
-    | "createdAt"
-    | "updatedAt"
+    | "created_at"
+    | "updated_at"
     | "is_email_verified"
   > {}
 

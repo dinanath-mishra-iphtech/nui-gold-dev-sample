@@ -45,6 +45,11 @@ export const createBusinessSchema =
       .string()
       .min(2),
 
+    contact_number: z
+      .string()
+      .min(10, "Contact number must be at least 10 digits")
+      .max(15, "Contact number cannot exceed 15 digits").nullable().optional(),
+
     physical_street_address:
       z.string().min(5),
 
@@ -81,6 +86,18 @@ export const createBusinessSchema =
         z.any()
       )
       .optional(),
+
+    status: z
+      .string()
+      .default("pending"),
+
+    tier: z
+      .string()
+      .default(""),
+
+    credit_limit: z
+      .string()
+      .default("0"),
   });
 
 export const registerInputSchema =

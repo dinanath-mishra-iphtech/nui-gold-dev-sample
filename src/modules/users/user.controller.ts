@@ -3,6 +3,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { UserService } from "./user.service";
 
 import { createUserSchema, loginSchema, registerInputSchema, setPasswordSchema } from "./user.validation";
+import { Business } from "../../database/models/business.model";
 
 export class UserController {
   static async create(request: FastifyRequest, reply: FastifyReply) {
@@ -85,6 +86,46 @@ export class UserController {
     return reply.status(200).send({
       success: true,
       data: user,
+    });
+  }
+
+  static async approveKyc(request: FastifyRequest<{ Params: { id: string; }; Body: { tier: string; credit_limit: string; }; }>, reply: FastifyReply) {
+    const business = await Business.findByPk(Number(request.params.id));
+
+    if (!business) {
+      return reply.status(404).send({
+        success: false,
+        message: "Business not found",
+      });
+    }
+
+    await business.update({
+      tier: request.body.tier,
+      credit_limit: request.body.credit_limit,
+      status: "active",
+    });
+
+    return reply.status(200).send({
+      success: true,
+      message: "Kyc approved successfully",
+      data: business,
+    });
+  }
+
+  static async rejectKyc(request: FastifyRequest<{ Params: { id: string; }; Body: { reasons: string[]; }; }>, reply: FastifyReply) {
+    const business = await Business.findByPk(Number(request.params.id));
+
+    if (!business) {
+      return reply.status(404).send({
+        success: false,
+        message: "Business not found",
+      });
+    }
+
+    return reply.status(200).send({
+      success: true,
+      message: "KYC rejected successfully",
+      data: business,
     });
   }
 }

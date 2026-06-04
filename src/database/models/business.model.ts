@@ -19,6 +19,8 @@ export interface BusinessAttributes {
 
   last_name: string;
 
+  contact_number: string | null;
+
   physical_street_address: string;
 
   city: string;
@@ -47,16 +49,22 @@ export interface BusinessAttributes {
     any
   >;
 
-  createdAt?: Date;
+  status: string;
 
-  updatedAt?: Date;
+  tier: string;
+
+  credit_limit: string;
+
+  created_at?: Date;
+
+  updated_at?: Date;
 }
 
 export interface CreateBusinessInput
   extends Omit<
     BusinessAttributes,
-    "id" | "createdAt" | "updatedAt"
-  > {}
+    "id" | "created_at" | "updated_at"
+  > { }
 
 @Table({
   tableName: "businesses",
@@ -92,6 +100,12 @@ export class Business extends Model<
     allowNull: false,
   })
   declare last_name: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  declare contact_number: string;
 
   @Column({
     type: DataType.STRING,
@@ -172,10 +186,31 @@ export class Business extends Model<
     any
   >;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: "pending",
+  })
+  declare status: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: "",
+  })
+  declare tier: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: "0",
+  })
+  declare credit_limit: string;
+
   @HasMany(() => User)
   declare users: User[];
 
-  declare readonly createdAt: Date;
+  declare readonly created_at: Date;
 
-  declare readonly updatedAt: Date;
+  declare readonly updated_at: Date;
 }

@@ -27,6 +27,11 @@ module.exports = {
           allowNull: false,
         },
 
+        contact_number: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
+
         physical_street_address: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -86,7 +91,25 @@ module.exports = {
           allowNull: true,
         },
 
-        createdAt: {
+        status: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          defaultValue: "pending",
+        },
+
+        tier: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          defaultValue: "",
+        },
+
+        credit_limit: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          defaultValue: "0",
+        },
+
+        created_at: {
           allowNull: false,
           type: Sequelize.DATE,
           defaultValue:
@@ -95,7 +118,7 @@ module.exports = {
             ),
         },
 
-        updatedAt: {
+        updated_at: {
           allowNull: false,
           type: Sequelize.DATE,
           defaultValue:
