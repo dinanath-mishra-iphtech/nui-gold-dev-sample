@@ -69,7 +69,7 @@ export interface CreateBusinessInput
 @Table({
   tableName: "businesses",
   timestamps: true,
-  underscored: false,
+  underscored: true,
 })
 export class Business extends Model<
   BusinessAttributes,

@@ -53,6 +53,7 @@ export interface CreateUserInput
 @Table({
   tableName: "users",
   timestamps: true,
+  underscored: true,
 })
 export class User extends Model<
   UserAttributes,

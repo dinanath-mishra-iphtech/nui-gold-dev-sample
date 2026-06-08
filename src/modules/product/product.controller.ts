@@ -14,8 +14,10 @@ export class ProductController {
 
       return reply.status(201).send({   
         success: true,
-        data: wishlistItem,
+        message: "Product added to wishlist successfully",
       });
+      
+
     } catch (error: any) {
       return reply.status(400).send({
         success: false,
