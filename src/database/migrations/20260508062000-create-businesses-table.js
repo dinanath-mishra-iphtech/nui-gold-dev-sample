@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable(
-      "users",
+      "businesses",
       {
         id: {
           type: Sequelize.INTEGER,
@@ -12,15 +12,9 @@ module.exports = {
           allowNull: false,
         },
 
-        business_id: {
-          type: Sequelize.INTEGER,
+        business_name: {
+          type: Sequelize.STRING,
           allowNull: false,
-          references: {
-            model: "businesses",
-            key: "id",
-          },
-          onUpdate: "CASCADE",
-          onDelete: "CASCADE",
         },
 
         first_name: {
@@ -33,7 +27,32 @@ module.exports = {
           allowNull: false,
         },
 
-        password: {
+        contact_number: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
+
+        physical_street_address: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+
+        city: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+
+        state: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+
+        postal: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+
+        country: {
           type: Sequelize.STRING,
           allowNull: false,
         },
@@ -44,62 +63,56 @@ module.exports = {
           unique: true,
         },
 
-        phone: {
-          type: Sequelize.STRING,
+        resale_certificate: {
+          type: Sequelize.JSONB,
           allowNull: true,
         },
 
-        is_email_verified: {
+        aml_plan_exists: {
           type: Sequelize.BOOLEAN,
           allowNull: false,
           defaultValue: false,
         },
 
-        is_contact_number_verified: {
+        independent_audit_conducted: {
           type: Sequelize.BOOLEAN,
           allowNull: false,
           defaultValue: false,
+        },
+
+        aml_training_provided: {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        },
+
+        audit_details: {
+          type: Sequelize.JSONB,
+          allowNull: true,
         },
 
         status: {
           type: Sequelize.STRING,
           allowNull: false,
+          defaultValue: "pending",
         },
 
-        role: {
-          type: Sequelize.ENUM(
-            "trading",
-            "viewer",
-            "admin",
-            "trader"
-          ),
+        tier: {
+          type: Sequelize.STRING,
           allowNull: false,
+          defaultValue: "",
         },
 
-        token: {
+        credit_limit: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          defaultValue: "0",
+        },
+
+        signed_trading_document_url: {
           type: Sequelize.STRING,
           allowNull: true,
-        },
-
-        expires_at: {
-          type: Sequelize.DATE,
-          allowNull: true,
-        },
-
-        otp: {
-          type: Sequelize.STRING,
-          allowNull: true,
-        },
-
-        otp_expires_at: {
-          type: Sequelize.DATE,
-          allowNull: true,
-        },
-
-        otp_attempts: {
-          type: Sequelize.INTEGER,
-          allowNull: false,
-          defaultValue: 0,
+          defaultValue: null,
         },
 
         created_at: {
@@ -125,11 +138,7 @@ module.exports = {
 
   async down(queryInterface) {
     await queryInterface.dropTable(
-      "users"
-    );
-
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_users_accessibility";'
+      "businesses"
     );
   },
 };

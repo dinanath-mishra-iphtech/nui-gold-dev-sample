@@ -3,13 +3,24 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable(
-      "users",
+      "addresses",
       {
         id: {
           type: Sequelize.INTEGER,
           autoIncrement: true,
           primaryKey: true,
           allowNull: false,
+        },
+
+        user_id: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          references: {
+            model: "users",
+            key: "id",
+          },
+          onUpdate: "CASCADE",
+          onDelete: "CASCADE",
         },
 
         business_id: {
@@ -23,83 +34,55 @@ module.exports = {
           onDelete: "CASCADE",
         },
 
-        first_name: {
+        address_line_1: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        last_name: {
+        address_line_2: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        password: {
+        landmark: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        email: {
-          type: Sequelize.STRING,
-          allowNull: false,
-          unique: true,
-        },
-
-        phone: {
-          type: Sequelize.STRING,
-          allowNull: true,
-        },
-
-        is_email_verified: {
-          type: Sequelize.BOOLEAN,
-          allowNull: false,
-          defaultValue: false,
-        },
-
-        is_contact_number_verified: {
-          type: Sequelize.BOOLEAN,
-          allowNull: false,
-          defaultValue: false,
-        },
-
-        status: {
+        city: {
           type: Sequelize.STRING,
           allowNull: false,
         },
 
-        role: {
-          type: Sequelize.ENUM(
-            "trading",
-            "viewer",
-            "admin",
-            "trader"
-          ),
+        state: {
+          type: Sequelize.STRING,
           allowNull: false,
         },
 
-        token: {
+        pin_code: {
           type: Sequelize.STRING,
-          allowNull: true,
+          allowNull: false,
         },
 
-        expires_at: {
-          type: Sequelize.DATE,
-          allowNull: true,
-        },
-
-        otp: {
+        country: {
           type: Sequelize.STRING,
-          allowNull: true,
+          allowNull: false,
         },
 
-        otp_expires_at: {
-          type: Sequelize.DATE,
-          allowNull: true,
-        },
-
-        otp_attempts: {
+        type: {
           type: Sequelize.INTEGER,
           allowNull: false,
-          defaultValue: 0,
+        },
+
+        contact_number: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+
+        is_default: {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
         },
 
         created_at: {
@@ -125,11 +108,7 @@ module.exports = {
 
   async down(queryInterface) {
     await queryInterface.dropTable(
-      "users"
-    );
-
-    await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_users_accessibility";'
+      "addresses"
     );
   },
 };
