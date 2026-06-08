@@ -373,7 +373,6 @@ export const getInventoryProductsRouteSchema = {
 };
 
 // ── Schema: POST /wishlist ──────────────────────────────────────────
-
 export const addToWishlistRouteSchema = {
   description: "Add a product to a business wishlist",
   tags: ["Wishlist"],
@@ -384,11 +383,17 @@ export const addToWishlistRouteSchema = {
       business_id: {
         type: "integer",
         description: "Business ID",
+        example: 2,
       },
       product_id: {
         type: "integer",
         description: "Product ID",
+        example: 1,
       },
+    },
+    example: {
+      business_id: 2,
+      product_id: 1,
     },
   },
   response: {
@@ -410,8 +415,6 @@ export const addToWishlistRouteSchema = {
   },
 };
 
-// ── Schema: DELETE /wishlist/:business_id/:product_id ──────────────
-
 export const removeFromWishlistRouteSchema = {
   description: "Remove a product from a business wishlist",
   tags: ["Wishlist"],
@@ -422,10 +425,12 @@ export const removeFromWishlistRouteSchema = {
       business_id: {
         type: "integer",
         description: "Business ID",
+        example: 2,
       },
       product_id: {
         type: "integer",
         description: "Product ID",
+        example: 1,
       },
     },
   },
@@ -447,10 +452,8 @@ export const removeFromWishlistRouteSchema = {
   },
 };
 
-// ── Schema: GET /wishlist/:business_id ─────────────────────────────
-
 export const getWishlistRouteSchema = {
-  description: "Get all wishlist products for a business",
+  description: "Retrieve all wishlist products for a business",
   tags: ["Wishlist"],
   params: {
     type: "object",
@@ -459,12 +462,13 @@ export const getWishlistRouteSchema = {
       business_id: {
         type: "integer",
         description: "Business ID",
+        example: 2,
       },
     },
   },
   response: {
     200: {
-      description: "Wishlist fetched successfully",
+      description: "Wishlist retrieved successfully",
       type: "object",
       properties: {
         success: { type: "boolean", example: true },
@@ -482,4 +486,3 @@ export const getWishlistRouteSchema = {
     500: errorResponse("Internal Server Error"),
   },
 };
-
