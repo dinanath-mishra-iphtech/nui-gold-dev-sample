@@ -2,7 +2,7 @@
   "development": {
     "username": "dev_nui_gold",
     "password": "dev_nui_gold@123",
-    "database": "nui_gold",
+    "database": "nui_gold1",
     "host": "localhost",
     "dialect": "postgres"
   },

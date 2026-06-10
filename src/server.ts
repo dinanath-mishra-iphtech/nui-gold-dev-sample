@@ -1,6 +1,6 @@
 import { app } from "./app";
 import { logger } from "./config/logger";
-const sequelize = require("./config/database");
+import { sequelize } from "./config/database";
 
 const start = async () => {
   try {

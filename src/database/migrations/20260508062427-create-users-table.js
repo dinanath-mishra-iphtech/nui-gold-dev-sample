@@ -1,56 +1,135 @@
 "use strict";
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
-    await queryInterface.createTable("users", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
+    await queryInterface.createTable(
+      "users",
+      {
+        id: {
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+          allowNull: false,
+        },
 
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
+        business_id: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          references: {
+            model: "businesses",
+            key: "id",
+          },
+          onUpdate: "CASCADE",
+          onDelete: "CASCADE",
+        },
 
-      email: {
-        type: Sequelize.STRING,
-        unique: true,
-        allowNull: false,
-      },
+        first_name: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
 
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
+        last_name: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
 
-      createdAt: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
+        password: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
 
-      updatedAt: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-    });
+        email: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          unique: true,
+        },
+
+        phone: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
+
+        is_email_verified: {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        },
+
+        is_contact_number_verified: {
+          type: Sequelize.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        },
+
+        status: {
+          type: Sequelize.STRING,
+          allowNull: false,
+        },
+
+        role: {
+          type: Sequelize.ENUM(
+            "trading",
+            "viewer",
+            "admin",
+            "trader"
+          ),
+          allowNull: false,
+        },
+
+        token: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
+
+        expires_at: {
+          type: Sequelize.DATE,
+          allowNull: true,
+        },
+
+        otp: {
+          type: Sequelize.STRING,
+          allowNull: true,
+        },
+
+        otp_expires_at: {
+          type: Sequelize.DATE,
+          allowNull: true,
+        },
+
+        otp_attempts: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          defaultValue: 0,
+        },
+
+        created_at: {
+          allowNull: false,
+          type: Sequelize.DATE,
+          defaultValue:
+            Sequelize.literal(
+              "CURRENT_TIMESTAMP"
+            ),
+        },
+
+        updated_at: {
+          allowNull: false,
+          type: Sequelize.DATE,
+          defaultValue:
+            Sequelize.literal(
+              "CURRENT_TIMESTAMP"
+            ),
+        },
+      }
+    );
   },
 
   async down(queryInterface) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
-    await queryInterface.dropTable("users");
+    await queryInterface.dropTable(
+      "users"
+    );
+
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_users_accessibility";'
+    );
   },
 };

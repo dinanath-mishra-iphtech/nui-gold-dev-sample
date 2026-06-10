@@ -1,2 +1,12 @@
-node_modules/*
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
 package-lock.json
+*.log
+logs/
+uploads/
+.DS_Store
+

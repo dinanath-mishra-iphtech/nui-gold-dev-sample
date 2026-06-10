@@ -1,71 +1,112 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-
 import { UserService } from "./user.service";
-
-import { createUserSchema, updateUserSchema } from "./user.validation";
+import { addUserSchema, changePasswordSchema, registerInputSchema, setPasswordSchema, updateProfileSchema } from "./user.validation";
 
 export class UserController {
+
   static async create(request: FastifyRequest, reply: FastifyReply) {
-    const body = createUserSchema.parse(request.body);
-
-    const user = await UserService.createUser(body);
-
-    return reply.status(201).send({
-      success: true,
-      data: user,
-    });
+    try {
+      const body = registerInputSchema.parse(request.body);
+      const user = await UserService.registerTrader(body);
+      return reply.status(201).send({ success: true, data: user });
+    } catch (error: any) {
+      const isDuplicate = error.message.includes("already exists");
+      return reply.status(isDuplicate ? 409 : 400).send({ success: false, message: error.message });
+    }
   }
 
-  static async getAll(request: FastifyRequest, reply: FastifyReply) {
-    const users = await UserService.getUsers();
-
-    return reply.send({
-      success: true,
-      data: users,
-    });
+  static async setPassword(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const parsedData = setPasswordSchema.parse(request.body);
+      const result = await UserService.setPassword(parsedData);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      return reply.status(400).send({ success: false, message: error.message });
+    }
   }
 
-  static async getOne(
-    request: FastifyRequest<{
-      Params: { id: string };
-    }>,
-    reply: FastifyReply,
-  ) {
-    const user = await UserService.getUser(request.params.id);
-
-    return reply.send({
-      success: true,
-      data: user,
-    });
+  static async sendSetPasswordLink(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { email } = request.body as { email: string };
+      const result = await UserService.sendSetPasswordLink(email);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      return reply.status(400).send({ success: false, message: error.message });
+    }
   }
 
-  static async update(
-    request: FastifyRequest<{
-      Params: { id: string };
-    }>,
-    reply: FastifyReply,
-  ) {
-    const body = updateUserSchema.parse(request.body);
-
-    const user = await UserService.updateUser(request.params.id, body);
-
-    return reply.send({
-      success: true,
-      data: user,
-    });
+  static async getBusinessProfile(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = request.user.id;
+      const business = await UserService.getBusinessProfile(userId);
+      return reply.status(200).send({
+        success: true,
+        data: business
+      });
+    } catch (error: any) {
+      return reply.status(400).send({
+        success: false,
+        message: error.message
+      });
+    }
   }
 
-  static async delete(
-    request: FastifyRequest<{
-      Params: { id: string };
-    }>,
-    reply: FastifyReply,
-  ) {
-    await UserService.deleteUser(request.params.id);
 
-    return reply.send({
-      success: true,
-      message: "User deleted successfully",
-    });
+  static async updateProfile(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = request.user.id;
+      const body = updateProfileSchema.parse(request.body);
+      const user = await UserService.updateProfile(userId, body);
+      return reply.send({ success: true, data: user });
+    } catch (error: any) {
+      return reply.status(400).send({ success: false, message: error.message });
+    }
   }
+
+
+  static async changePassword(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = request.user.id;
+      const body = changePasswordSchema.parse(request.body);
+      await UserService.changePassword(userId, body.currentPassword, body.newPassword);
+      return reply.send({ success: true, message: "Password changed successfully" });
+    } catch (error: any) {
+      return reply.status(400).send({ success: false, message: error.message });
+    }
+  }
+
+
+  static async addUser(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const traderId = request.user.id;
+      const body = addUserSchema.parse(request.body);
+      const result = await UserService.addUser(traderId, body);
+      return reply.status(201).send({
+        success: true,
+        ...result
+      });
+
+    } catch (error: any) {
+      const isDuplicate = error.message.includes("already exists");
+      return reply.status(isDuplicate ? 409 : 400).send({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+
+  static async removeUser(request: FastifyRequest<{ Params: { userId: string } }>, reply: FastifyReply) {
+    try {
+      const traderId = request.user.id;
+      const targetUserId = Number(request.params.userId);
+      const result = await UserService.removeUser(traderId, targetUserId);
+      return reply.status(200).send({ success: true, ...result });
+    } catch (error: any) {
+      return reply.status(400).send({ success: false, message: error.message });
+    }
+  }
+
+
+
 }

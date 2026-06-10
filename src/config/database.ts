@@ -2,7 +2,6 @@ import { Sequelize } from "sequelize-typescript";
 const config = require("./config.json")[process.env.NODE_ENV || "development"];
 import { User } from "../database/models/user.model";
 import { Business } from "../database/models/business.model";
-import { Address } from "../database/models/address.model";
 
 export const sequelize = new Sequelize({
   database: config.database,
@@ -23,5 +22,5 @@ export const sequelize = new Sequelize({
     acquire: 30000,
     idle: 10000,
   },
-  models: [User, Business, Address],
+  models: [User, Business],
 });

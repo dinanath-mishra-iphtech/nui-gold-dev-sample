@@ -29,9 +29,6 @@ export const env = {
   /** Twilio phone number (E.164 format, e.g., +1234567890) */
   TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || "",
 
-  /** Twilio Verify Service SID for OTP */
-  TWILIO_VERIFY_SERVICE_SID: process.env.TWILIO_VERIFY_SERVICE_SID || "",
-
   /** SMTP user for email provider (Gmail address) */
   SMTP_USER: process.env.SMTP_USER || "",
 
