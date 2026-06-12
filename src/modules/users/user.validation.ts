@@ -65,3 +65,8 @@ export const changePasswordSchema = z.object({
  newPassword: z.string().min(8, "New password must be at least 8 characters"),
 });
 
+export const needHelpSchema = z.object({
+  subject: z.string().min(3).max(150),
+  description: z.string().min(10).max(2000),
+});
+

@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { UserService } from "./user.service";
-import { addUserSchema, changePasswordSchema, registerInputSchema, setPasswordSchema, updateProfileSchema } from "./user.validation";
+import { addUserSchema, changePasswordSchema, needHelpSchema, registerInputSchema, setPasswordSchema, updateProfileSchema } from "./user.validation";
 
 export class UserController {
 
@@ -104,6 +104,25 @@ export class UserController {
       return reply.status(200).send({ success: true, ...result });
     } catch (error: any) {
       return reply.status(400).send({ success: false, message: error.message });
+    }
+  }
+
+  static async needHelp(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = request.user.id;
+      const { subject, description } = needHelpSchema.parse(request.body);
+
+      await UserService.needHelp(userId, subject, description);
+
+      return reply.status(200).send({
+        success: true,
+        message: "Your query has been submitted successfully.",
+      });
+    } catch (error: any) {
+      return reply.status(400).send({
+        success: false,
+        message: error.message,
+      });
     }
   }
 

@@ -26,6 +26,13 @@ export async function userRoutes(app: FastifyInstance) {
   app.delete<{ Params: { userId: string } }>("/remove-user/:userId", { preHandler: [authenticate], schema: removeUserSchema }, UserController.removeUser);
 
 
+  app.post("/need-help", { preHandler: [authenticate] }, UserController.needHelp);
+  
+
+  
+  
+
+
 
 
 }

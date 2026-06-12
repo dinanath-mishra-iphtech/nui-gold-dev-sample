@@ -8,6 +8,7 @@ import { getResetPasswordEmailTemplate } from "../../common/templates/resetPassw
 import { getOtpEmailTemplate } from "../../common/templates/otp.template";
 import { env } from "../../config/env";
 import { logger } from "../../config/logger";
+import { buildNeedHelpTemplate } from "../../common/templates/needHelp.template";
 
 export class UserService {
 
@@ -15,7 +16,7 @@ export class UserService {
   private static async sendRegistrationOtp(email: string) {
     const user = await UserRepository.findUserByEmail(email);
     if (!user) return;
-    
+
     const otpPlain = crypto.randomInt(100000, 1000000).toString();
     const otpHash = await bcrypt.hash(otpPlain, 10);
     const expiresAt = new Date(Date.now() + env.OTP_EXPIRY_MINUTES * 60 * 1000);
@@ -293,6 +294,23 @@ export class UserService {
       message: "User removed successfully"
     };
   }
+
+  //for sending user query details to admin's email
+  static async needHelp(userId: number, subject: string, description: string) {
+    const user = await UserRepository.findById(userId);
+    if (!user) throw new Error("User not found");
+    
+    const html = buildNeedHelpTemplate(subject, description, user.email);
+    const ADMIN_EMAIL = "dinanath.mishra@iphtechnologies.com";
+
+    await emailProvider.sendEmail(ADMIN_EMAIL, subject, html);
+    return {
+      message: "Query submitted successfully"
+    }
+  }
+  
+
+
 
 
 }
